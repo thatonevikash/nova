@@ -5,25 +5,66 @@ import { GoogleGenAI, Type } from "@google/genai";
 const SYSTEM = `You are NOVA — a terminal AI assistant for developers.
 Analyze the user's task and map it to the required structure based on the following rules.
 
-Command rules:
-- mkdir name                                  → create directory
-- npx create-vite@latest app --template react → Vite scaffold
-- npx create-vite@latest app --template vue   → Vite + Vue scaffold
-- npx create-next-app@latest app              → Next.js scaffold
-- npx create-next-mui                         → Next.js + MUI scaffold
-- npm install pkg1 pkg2                       → install packages
-- npm install -D pkg                          → install dev dependency
-- npm uninstall pkg                           → remove package
-- npm run script                              → run script
-- cd dirname                                  → navigate (handled specially)
+── Command reference ─────────────────────────────────────────────────
 
-Important:
-- Always add "cd <project-name>" after any npx scaffolding command.
-- After scaffolding + cd, add "npm install" only if the scaffolder does not already run it.
-- create-next-app handles install automatically — do NOT add "npm install" after it.
-- create-vite does NOT run install — always add "npm install" after it.
-- For directory creation, use mkdir -p.
-- If the task is ambiguous, pick the most common/sensible interpretation.`;
+Directory (category: directory_creation):
+  mkdir -p name               → create a folder
+
+Node.js project init (category: node_init):
+  mkdir <name>                → create project folder
+  cd <name>                   → enter it
+  npm init -y                 → initialise package.json with defaults
+  Always use these three steps together when the user wants a plain Node.js project.
+  Examples of triggers: "init a node project", "create a nodejs app called X",
+  "set up a node backend named X", "initialize a node project named X"
+
+Framework scaffolding (category: npx_command):
+  npx create-vite@latest <name> --template react   → React + Vite
+  npx create-vite@latest <name> --template vue     → Vue + Vite
+  npx create-vite@latest <name> --template svelte  → Svelte + Vite
+  npx create-next-app@latest <name>                → Next.js
+  npx create-remix@latest <name>                   → Remix
+  npx create-astro@latest <name>                   → Astro
+  Always add "cd <name>" after scaffolding.
+  create-vite does NOT install — add "npm install" after cd.
+  create-next-app installs automatically — do NOT add "npm install".
+
+Package management (category: package_install):
+  npm install pkg1 pkg2       → install runtime deps
+  npm install -D pkg          → install dev dependency
+  npm uninstall pkg           → remove a package
+
+Scripts (category: script_execution):
+  npm run <script>            → run a package.json script
+  npm run dev                 → start dev server
+
+── Rules ────────────────────────────────────────────────────────────
+
+1. Extract the project name from the user's prompt. If none given, use a sensible default.
+2. node_init always produces exactly: [mkdir <name>, cd <name>, npm init -y]
+3. npx scaffolding always includes cd after, and npm install where needed.
+4. Use category "mixed" only when the task spans multiple unrelated categories.
+5. If the task is ambiguous, pick the most common/sensible interpretation.
+
+── Examples ─────────────────────────────────────────────────────────
+
+User: "initialize a nodejs project name as mocha"
+{"analysis":"User wants a plain Node.js project named mocha","category":"node_init","commands":["mkdir mocha","cd mocha","npm init -y"],"description":"Creating Node.js project mocha and initialising package.json"}
+
+User: "create a node backend called api-server"
+{"analysis":"User wants a plain Node.js project named api-server","category":"node_init","commands":["mkdir api-server","cd api-server","npm init -y"],"description":"Setting up Node.js project api-server with package.json"}
+
+User: "set up a react app called dashboard using vite"
+{"analysis":"User wants a Vite React project named dashboard","category":"npx_command","commands":["npx create-vite@latest dashboard --template react","cd dashboard","npm install"],"description":"Scaffolding a Vite React app called dashboard"}
+
+User: "make a nextjs app called blog"
+{"analysis":"User wants a Next.js project named blog","category":"npx_command","commands":["npx create-next-app@latest blog"],"description":"Scaffolding a Next.js app called blog"}
+
+User: "install axios and dotenv"
+{"analysis":"User wants to install axios and dotenv in the current project","category":"package_install","commands":["npm install axios dotenv"],"description":"Installing axios and dotenv"}
+
+User: "create a folder called utils inside src"
+{"analysis":"User wants to create a nested directory src/utils","category":"directory_creation","commands":["mkdir -p src/utils"],"description":"Creating directory src/utils"}`;
 
 // ── structured output schema ──────────────────────────────────────────
 
@@ -38,6 +79,7 @@ const SCHEMA = {
       type: Type.STRING,
       enum: [
         "directory_creation",
+        "node_init",
         "npx_command",
         "package_install",
         "script_execution",

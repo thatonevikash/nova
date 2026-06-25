@@ -3,14 +3,6 @@ import { resolve, isAbsolute } from "path";
 import { homedir } from "os";
 import { mkdirSync } from "fs";
 
-// ── platform detection ────────────────────────────────────────────────
-
-const IS_WINDOWS = process.platform === "win32";
-
-// Windows → cmd.exe /c   |   Unix → sh -c
-const SHELL = IS_WINDOWS ? "cmd.exe" : "sh";
-const SHELL_FLAG = IS_WINDOWS ? "/c" : "-c";
-
 // ── state ─────────────────────────────────────────────────────────────
 
 let cwd = process.cwd();
@@ -28,8 +20,9 @@ function applyCD(target) {
   return cwd;
 }
 
-// ── mkdir helper (native Node.js — no shell needed) ───────────────────
-// Handles both "mkdir dirname" and "mkdir -p dirname" on any OS.
+// ── mkdir helper (native Node.js — works on all platforms) ───────────
+// Handles "mkdir name" and "mkdir -p name".
+// mkdir -p does not exist on Windows cmd.exe, so we bypass the shell.
 
 function applyMkdir(cmd) {
   const dirArg = cmd.replace(/^mkdir(\s+-p)?\s+/, "").trim();
@@ -39,19 +32,26 @@ function applyMkdir(cmd) {
 }
 
 // ── run a single shell command ────────────────────────────────────────
-// All three stdio streams are inherited so:
-//   • interactive prompts (npx create-*, y/n questions) show in the terminal
-//   • the user can answer them normally
-//   • colors and progress bars from the child process render correctly
 //
-// Trade-off: we don't capture output for indented formatting,
-// but commands actually work — which matters more.
+// KEY FIXES vs earlier version:
+//
+// 1. shell: true  — Node.js resolves the correct platform shell itself:
+//      Windows → process.env.ComSpec (full path, no ENOENT)
+//      Unix    → /bin/sh
+//    Previously we hardcoded 'cmd.exe' which failed when it wasn't on PATH.
+//
+// 2. stdio: 'inherit' — all three streams (stdin/stdout/stderr) come
+//    straight from the parent terminal.  create-next-app and similar tools
+//    need raw TTY access for their keyboard-driven UIs (arrow keys, etc.).
+//    The caller must pause() readline before calling run() so readline
+//    doesn't compete for stdin — see executeCommands below.
 
 function run(command) {
   return new Promise((res, rej) => {
-    const proc = spawn(SHELL, [SHELL_FLAG, command], {
+    const proc = spawn(command, {
       cwd,
-      stdio: "inherit",
+      shell: true, // platform shell resolved automatically
+      stdio: "inherit", // full TTY passthrough for interactive prompts
     });
 
     proc.on("close", (code) => {
@@ -64,16 +64,19 @@ function run(command) {
 }
 
 // ── run all commands in sequence ──────────────────────────────────────
+//
+// IMPORTANT: the caller must pause() its readline interface before calling
+// this function, and resume() it after.  If readline holds stdin while
+// an npx command needs raw keyboard input, the prompts are unresponsive.
 
 export async function executeCommands(commands, onCommand) {
   for (const cmd of commands) {
     if (cmd.startsWith("cd ")) {
-      // Directory navigation — update internal state, no subprocess
+      // Directory navigation — update internal cwd, no subprocess
       const newDir = applyCD(cmd.slice(3).trim());
       onCommand?.(`cd ${newDir}`);
     } else if (/^mkdir(\s+-p)?\s+/.test(cmd)) {
-      // Directory creation — Node.js fs handles this cross-platform
-      // (mkdir -p doesn't exist on Windows cmd.exe)
+      // Directory creation via Node.js fs — cross-platform, no shell needed
       onCommand?.(cmd);
       try {
         const created = applyMkdir(cmd);
@@ -82,11 +85,11 @@ export async function executeCommands(commands, onCommand) {
         throw new Error(`mkdir failed: ${err.message}`);
       }
     } else {
-      // Everything else — hand off to the platform shell with full stdio
+      // Everything else — shell with full stdio inheritance
       onCommand?.(cmd);
-      console.log(); // breathing room before raw command output
+      console.log(); // visual space before command output
       await run(cmd);
-      console.log(); // breathing room after
+      console.log(); // visual space after
     }
   }
 }

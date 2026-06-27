@@ -4,8 +4,8 @@ import { executeCommands } from "./executor.js";
 import { printCommand, printError, printFinished, sep } from "./ui.js";
 
 // ── action definitions ────────────────────────────────────────────────
-// Each action mirrors the shape of an AI response plan so the same
-// executor path is exercised end-to-end.
+// Each entry mirrors the shape of an AI response so the real executor
+// path is exercised end-to-end with no mocking.
 
 const ACTIONS = [
   {
@@ -72,13 +72,11 @@ const ACTIONS = [
 
 // ── helpers ───────────────────────────────────────────────────────────
 
-// command preview shown in the menu (joins with →, truncates if long)
-function preview(commands) {
-  const joined = commands.join("  →  ");
+const preview = (cmds) => {
+  const joined = cmds.join("  →  ");
   return joined.length > 52 ? joined.slice(0, 49) + "…" : joined;
-}
+};
 
-// pad a string to a fixed width
 const pad = (str, n) => str + " ".repeat(Math.max(0, n - str.length));
 
 // ── menu renderer ─────────────────────────────────────────────────────
@@ -152,7 +150,9 @@ export async function devMode() {
         }
 
         if (input === "exit" || input === "quit") {
-          console.log(`\n  ${chalk.gray(">")} ${chalk.gray("Goodbye.")}\n`);
+          console.log(
+            `\n  ${chalk.gray(">")} ${chalk.gray("Exiting dev mode.")}\n`,
+          );
           rl.close();
           process.exit(0);
         }
@@ -162,15 +162,23 @@ export async function devMode() {
 
         if (!action) {
           console.log(
-            `\n  ${chalk.red("✗")} ${chalk.red(`Invalid choice: "${input}". Enter 1–8 or exit.`)}`,
+            `\n  ${chalk.red("✗")} ${chalk.red(`"${input}" is not valid — enter 1–8 or exit.`)}`,
           );
           ask();
           return;
         }
 
-        rl.pause(); // release stdin before any command runs
-        await runAction(action); // npx now has full raw TTY access
-        rl.resume(); // reclaim stdin for the next prompt
+        // ── hand stdin back to the child process ──────────────────────
+        // readline holds process.stdin and keeps it in line-buffered mode.
+        // Interactive tools like create-next-app need raw TTY access for
+        // arrow keys and keyboard navigation.  pause() releases that hold
+        // so the spawned process gets full control of the terminal.
+        rl.pause();
+
+        await runAction(action);
+
+        // ── reclaim stdin for the next menu prompt ────────────────────
+        rl.resume();
         ask();
       },
     );

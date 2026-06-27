@@ -1,0 +1,189 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# NOVA — Development Action Tests
+#
+# BRANCH STRATEGY
+#   This file lives ONLY on the `development` branch.
+#   main         → clean production code  (no dev.js, no workflow)
+#   development  → owns dev.js + this workflow
+#
+# TRIGGERS
+#   • Push to `development`         — test every dev commit
+#   • Push to `feat/**` / `fix/**`  — test feature/fix branches
+#     (those branches must be created from `development` so this file exists)
+#   • Pull request → `main`         — gate before any code reaches production
+#   • Pull request → `development`  — gate before merging into dev
+#
+# COVERAGE
+#   One job per action in dev.js so failures are pinpointed by action name.
+#   Action 8 (run dev server) is excluded — it is a long-running process
+#   and has no deterministic exit condition suitable for CI.
+#
+#   npx scaffolding commands receive --yes to skip interactive prompts.
+#   No build commands (npm run build / npm run dev) are added after
+#   scaffolding — the test validates the scaffold succeeded, nothing more.
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: NOVA — Dev Action Tests
+
+on:
+  push:
+    branches:
+      - development
+      - "feat/**"
+      - "fix/**"
+  pull_request:
+    branches:
+      - main
+      - development
+
+env:
+  NODE_VERSION: "20"
+
+# ── Action 1 ─────────────────────────────────────────────────────────────────
+
+jobs:
+  action-folder-creation:
+    name: "① folder creation"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "mkdir new-folder"
+        run: mkdir new-folder
+
+      - name: "verify folder exists"
+        run: test -d new-folder && echo "✓ new-folder created"
+
+  # ── Action 2 ─────────────────────────────────────────────────────────────────
+
+  action-navigate-within-folder:
+    name: "② navigate within folder"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "mkdir open-folder"
+        run: mkdir open-folder
+
+      - name: "cd open-folder"
+        working-directory: open-folder
+        run: |
+          echo "✓ navigated into $(pwd)"
+
+  # ── Action 3 ─────────────────────────────────────────────────────────────────
+
+  action-nodejs-init:
+    name: "③ nodejs project init"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: "mkdir server"
+        run: mkdir server
+
+      - name: "npm init -y"
+        working-directory: server
+        run: npm init -y
+
+      - name: "verify package.json created"
+        working-directory: server
+        run: test -f package.json && echo "✓ package.json present"
+
+  # ── Action 4 ─────────────────────────────────────────────────────────────────
+
+  action-package-install:
+    name: "④ package installation"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: "setup — npm init -y"
+        run: npm init -y
+
+      - name: "npm install dotenv express"
+        run: npm install dotenv express
+
+      - name: "verify packages installed"
+        run: |
+          test -d node_modules/dotenv  && echo "✓ dotenv installed"
+          test -d node_modules/express && echo "✓ express installed"
+
+  # ── Action 5 ─────────────────────────────────────────────────────────────────
+
+  action-package-uninstall:
+    name: "⑤ package uninstallation"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: "setup — npm init -y && npm install express"
+        run: |
+          npm init -y
+          npm install express
+
+      - name: "npm uninstall express"
+        run: npm uninstall express
+
+      - name: "verify express removed"
+        run: |
+          if [ -d node_modules/express ]; then
+            echo "✗ express still present" && exit 1
+          else
+            echo "✓ express uninstalled"
+          fi
+
+  # ── Action 6 ─────────────────────────────────────────────────────────────────
+
+  action-vite-react:
+    name: "⑥ react + vite setup"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: "npx create-vite@latest todo-app --template react"
+        # create-vite is non-interactive when --template is provided
+        run: npx create-vite@latest todo-app --template react
+
+      - name: "npm install"
+        # runs inside todo-app — mirrors the cd + npm install in dev.js
+        working-directory: todo-app
+        run: npm install
+
+      - name: "verify scaffold structure"
+        working-directory: todo-app
+        run: |
+          test -f package.json   && echo "✓ package.json"
+          test -f index.html     && echo "✓ index.html"
+          test -d src            && echo "✓ src/"
+          test -d node_modules   && echo "✓ node_modules/"
+
+  # ── Action 7 ─────────────────────────────────────────────────────────────────
+
+  action-nextjs:
+    name: "⑦ nextjs setup"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: "npx create-next-app@latest next-todo-app"
+        # --yes accepts all defaults (TypeScript, ESLint, App Router, etc.)
+        # Required in CI — create-next-app is interactive by default
+        run: npx create-next-app@latest next-todo-app --yes
+
+      - name: "verify scaffold structure"
+        working-directory: next-todo-app
+        run: |
+          test -f package.json     && echo "✓ package.json"
+          test -f next.config.ts   && echo "✓ next.config.ts"
+          test -d app              && echo "✓ app/"
+          test -d node_modules     && echo "✓ node_modules/"
+
+# ── Action 8 — excluded ───────────────────────────────────────────────────────
+# run dev server (npm run dev) is a long-running process with no deterministic
+# exit. It cannot be validated in CI without a timeout hack. Tested manually.

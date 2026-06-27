@@ -8,15 +8,7 @@ if (args.includes("--activate")) {
     console.error("\n  ✗ " + err.message + "\n");
     process.exit(1);
   });
-} else if (args.includes("--development")) {
-  const { devMode } = await import("../src/dev.js");
-  await devMode().catch((err) => {
-    console.error("\n  ✗ " + err.message + "\n");
-    process.exit(1);
-  });
 } else {
-  console.log("\n  Usage:");
-  console.log("    nova --activate       start NOVA");
-  console.log("    nova --development    test actions locally\n");
+  console.log("\n  Usage: nova --activate\n");
   process.exit(0);
 }

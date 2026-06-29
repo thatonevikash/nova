@@ -8,7 +8,7 @@ Analyze the user's task and respond ONLY with a raw JSON object. No markdown, no
 Schema:
 {
   "analysis": "what the user wants in plain language",
-  "category": "directory_creation" | "node_init" | "npx_command" | "package_install" | "script_execution" | "mixed",
+  "category": "directory_creation" | "node_init" | "npx_command" | "codebase_rename" | "package_install" | "script_execution" | "mixed",
   "commands": ["shell command 1", "shell command 2"],
   "description": "one short sentence describing what will be done"
 }
@@ -37,6 +37,14 @@ Framework scaffolding (category: npx_command):
   create-vite does NOT install — add "npm install" after cd.
   create-next-app installs automatically — do NOT add "npm install".
 
+Codebase rename (category: codebase_rename):
+  npx caselyjs <source-path> --case kebab --full   -> rename directories and files to kebab-case
+  npx caselyjs <source-path> --case pascal --full  -> rename directories and files to PascalCase
+  npx caselyjs <source-path> --case camel --full   -> rename directories and files to camelCase
+  Supported --case values are kebab, pascal, and camel.
+  Always include --full when the user wants to rename the codebase, files, and directories.
+  If no source path is given, use ".".
+
 Package management (category: package_install):
   npm install pkg1 pkg2       → install runtime deps
   npm install -D pkg          → install dev dependency
@@ -51,8 +59,9 @@ Scripts (category: script_execution):
 1. Extract the project name from the user's prompt. If none given, use a sensible default.
 2. node_init always produces exactly: [mkdir <name>, cd <name>, npm init -y]
 3. npx scaffolding always includes cd after, and npm install where needed.
-4. Use category "mixed" only when the task spans multiple unrelated categories.
-5. If the task is ambiguous, pick the most common/sensible interpretation.
+4. codebase_rename always produces exactly one caselyjs command with --case and --full.
+5. Use category "mixed" only when the task spans multiple unrelated categories.
+6. If the task is ambiguous, pick the most common/sensible interpretation.
 
 ── Examples ─────────────────────────────────────────────────────────
 
@@ -72,7 +81,10 @@ User: "install axios and dotenv"
 {"analysis":"User wants to install axios and dotenv in the current project","category":"package_install","commands":["npm install axios dotenv"],"description":"Installing axios and dotenv"}
 
 User: "create a folder called utils inside src"
-{"analysis":"User wants to create a nested directory src/utils","category":"directory_creation","commands":["mkdir -p src/utils"],"description":"Creating directory src/utils"}`;
+{"analysis":"User wants to create a nested directory src/utils","category":"directory_creation","commands":["mkdir -p src/utils"],"description":"Creating directory src/utils"}
+
+User: "rename the codebase in src to kebab case"
+{"analysis":"User wants to rename files and directories under src to kebab-case","category":"codebase_rename","commands":["npx caselyjs src --case kebab --full"],"description":"Renaming the src codebase to kebab-case"}`;
 
 // ── evaluate ──────────────────────────────────────────────────────────
 

@@ -56,10 +56,9 @@ Scripts (category: script_execution):
 1. Extract the project name from the user's prompt. If none given, use a sensible default.
 2. node_init always produces exactly: [mkdir <name>, cd <name>, npm init -y]
 3. npx scaffolding always includes cd after, and npm install where needed.
-4. next_mui_project always produces exactly one create-next-mui command.
-5. codebase_rename always produces exactly one caselyjs command with --case and --full.
-6. Use category "mixed" only when the task spans multiple unrelated categories.
-7. If the task is ambiguous, pick the most common/sensible interpretation.
+4. codebase_rename always produces exactly one caselyjs command with --case and --full.
+5. Use category "mixed" only when the task spans multiple unrelated categories.
+6. If the task is ambiguous, pick the most common/sensible interpretation.
 
 ── Examples ─────────────────────────────────────────────────────────
 

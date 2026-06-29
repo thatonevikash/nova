@@ -8,7 +8,7 @@ Analyze the user's task and respond ONLY with a raw JSON object. No markdown, no
 Schema:
 {
   "analysis": "what the user wants in plain language",
-  "category": "directory_creation" | "node_init" | "npx_command" | "codebase_rename" | "package_install" | "script_execution" | "mixed",
+  "category": "directory_creation" | "node_init" | "npx_command" | "next_mui_project" | "codebase_rename" | "package_install" | "script_execution" | "mixed",
   "commands": ["shell command 1", "shell command 2"],
   "description": "one short sentence describing what will be done"
 }
@@ -37,6 +37,11 @@ Framework scaffolding (category: npx_command):
   create-vite does NOT install — add "npm install" after cd.
   create-next-app installs automatically — do NOT add "npm install".
 
+Next.js + MUI scaffolding (category: next_mui_project):
+  npx create-next-mui@latest <name>                -> Next.js + MUI
+  Use this when the user asks for a Next.js project with MUI, Material UI, or Material Design.
+  Always add "cd <name>" or "npm install" after this command.
+
 Codebase rename (category: codebase_rename):
   npx caselyjs <source-path> --case kebab --full   -> rename directories and files to kebab-case
   npx caselyjs <source-path> --case pascal --full  -> rename directories and files to PascalCase
@@ -59,9 +64,10 @@ Scripts (category: script_execution):
 1. Extract the project name from the user's prompt. If none given, use a sensible default.
 2. node_init always produces exactly: [mkdir <name>, cd <name>, npm init -y]
 3. npx scaffolding always includes cd after, and npm install where needed.
-4. codebase_rename always produces exactly one caselyjs command with --case and --full.
-5. Use category "mixed" only when the task spans multiple unrelated categories.
-6. If the task is ambiguous, pick the most common/sensible interpretation.
+4. next_mui_project always produces exactly one create-next-mui command.
+5. codebase_rename always produces exactly one caselyjs command with --case and --full.
+6. Use category "mixed" only when the task spans multiple unrelated categories.
+7. If the task is ambiguous, pick the most common/sensible interpretation.
 
 ── Examples ─────────────────────────────────────────────────────────
 
@@ -76,6 +82,9 @@ User: "set up a react app called dashboard using vite"
 
 User: "make a nextjs app called blog"
 {"analysis":"User wants a Next.js project named blog","category":"npx_command","commands":["npx create-next-app@latest blog"],"description":"Scaffolding a Next.js app called blog"}
+
+User: "create a nextjs project with mui called admin-panel"
+{"analysis":"User wants a Next.js + MUI project named admin-panel","category":"next_mui_project","commands":["npx create-next-mui@latest admin-panel"],"description":"Scaffolding a Next.js + MUI app called admin-panel"}
 
 User: "install axios and dotenv"
 {"analysis":"User wants to install axios and dotenv in the current project","category":"package_install","commands":["npm install axios dotenv"],"description":"Installing axios and dotenv"}

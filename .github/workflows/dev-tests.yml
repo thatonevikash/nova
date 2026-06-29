@@ -15,7 +15,7 @@
 #
 # COVERAGE
 #   One job per action in dev.js so failures are pinpointed by action name.
-#   Action 8 (run dev server) is excluded — it is a long-running process
+#   Action 9 (run dev server) is excluded — it is a long-running process
 #   and has no deterministic exit condition suitable for CI.
 #
 #   npx scaffolding commands receive --yes to skip interactive prompts.
@@ -184,6 +184,30 @@ jobs:
           test -d app              && echo "✓ app/"
           test -d node_modules     && echo "✓ node_modules/"
 
-# ── Action 8 — excluded ───────────────────────────────────────────────────────
+  # ── Action 8 ─────────────────────────────────────────────────────────────────
+
+  action-nextjs-mui:
+    name: "⑧ nextjs + mui setup"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: "npx create-next-mui@latest todo-mui"
+        run: npx create-next-mui@latest todo-mui
+
+      - name: "npm install"
+        # runs inside todo-mui — mirrors the cd + npm install in dev.js
+        working-directory: todo-mui
+        run: npm install
+
+      - name: "verify scaffold structure"
+        working-directory: todo-mui
+        run: |
+          test -f package.json   && echo "✓ package.json"
+          test -d node_modules   && echo "✓ node_modules/"
+
+# ── Action 9 — excluded ───────────────────────────────────────────────────────
 # run dev server (npm run dev) is a long-running process with no deterministic
 # exit. It cannot be validated in CI without a timeout hack. Tested manually.

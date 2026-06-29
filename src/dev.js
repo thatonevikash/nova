@@ -63,6 +63,17 @@ const ACTIONS = [
   },
   {
     id: 8,
+    label: "nextjs + mui setup",
+    description: "Scaffolding Next.js + MUI app: todo-mui",
+    category: "next_mui_project",
+    commands: [
+      "npx create-next-mui@latest todo-mui",
+      "cd todo-mui",
+      "npm install",
+    ],
+  },
+  {
+    id: 9,
     label: "run dev server",
     description: "Starting dev server (npm run dev)",
     category: "script_execution",
@@ -140,7 +151,7 @@ export async function devMode() {
     printMenu();
 
     rl.question(
-      `  ${chalk.white(">")} ${chalk.gray("pick action [1-8] or exit: ")}`,
+      `  ${chalk.white(">")} ${chalk.gray("pick action [1-9] or exit: ")}`,
       async (raw) => {
         const input = raw.trim().toLowerCase();
 
@@ -162,7 +173,7 @@ export async function devMode() {
 
         if (!action) {
           console.log(
-            `\n  ${chalk.red("✗")} ${chalk.red(`"${input}" is not valid — enter 1–8 or exit.`)}`,
+            `\n  ${chalk.red("✗")} ${chalk.red(`"${input}" is not valid — enter 1–9 or exit.`)}`,
           );
           ask();
           return;

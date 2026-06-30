@@ -43,7 +43,7 @@ env:
 
 jobs:
   action-folder-creation:
-    name: "① folder creation"
+    name: "[1] folder creation"
     runs-on: ubuntu-latest
     steps:
       - name: "mkdir new-folder"
@@ -55,7 +55,7 @@ jobs:
   # ── Action 2 ─────────────────────────────────────────────────────────────────
 
   action-navigate-within-folder:
-    name: "② navigate within folder"
+    name: "[2] navigate within folder"
     runs-on: ubuntu-latest
     steps:
       - name: "mkdir open-folder"
@@ -69,7 +69,7 @@ jobs:
   # ── Action 3 ─────────────────────────────────────────────────────────────────
 
   action-nodejs-init:
-    name: "③ nodejs project init"
+    name: "[3] nodejs project init"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-node@v4
@@ -90,7 +90,7 @@ jobs:
   # ── Action 4 ─────────────────────────────────────────────────────────────────
 
   action-package-install:
-    name: "④ package installation"
+    name: "[4] package installation"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-node@v4
@@ -111,7 +111,7 @@ jobs:
   # ── Action 5 ─────────────────────────────────────────────────────────────────
 
   action-package-uninstall:
-    name: "⑤ package uninstallation"
+    name: "[5] package uninstallation"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-node@v4
@@ -137,7 +137,7 @@ jobs:
   # ── Action 6 ─────────────────────────────────────────────────────────────────
 
   action-vite-react:
-    name: "⑥ react + vite setup"
+    name: "[6] react + vite setup"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-node@v4
@@ -164,7 +164,7 @@ jobs:
   # ── Action 7 ─────────────────────────────────────────────────────────────────
 
   action-nextjs:
-    name: "⑦ nextjs setup"
+    name: "[7] nextjs setup"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-node@v4
@@ -187,7 +187,7 @@ jobs:
   # ── Action 8 ─────────────────────────────────────────────────────────────────
 
   action-nextjs-mui:
-    name: "⑧ nextjs + mui setup"
+    name: "[8] nextjs + mui setup"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-node@v4

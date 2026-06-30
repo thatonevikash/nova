@@ -23,7 +23,7 @@
 #   scaffolding — the test validates the scaffold succeeded, nothing more.
 # ─────────────────────────────────────────────────────────────────────────────
 
-name: NOVA — Dev Action Tests
+name: NOVA
 
 on:
   push:
@@ -195,7 +195,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: "npx create-next-mui@latest todo-mui"
-        run: npx create-next-mui@latest todo-mui
+        run: npx create-next-mui@latest todo-mui --yes
 
       - name: "npm install"
         # runs inside todo-mui — mirrors the cd + npm install in dev.js

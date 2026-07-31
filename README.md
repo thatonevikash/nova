@@ -6,6 +6,8 @@ NOVA understands developer tasks in plain English — scaffolding projects, inst
 
 ---
 
+<video controls src="assets/trailer.mp4" poster="assets/poster.png" title="trailer"></video>
+
 ## Install
 
 ```bash

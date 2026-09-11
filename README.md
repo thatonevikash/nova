@@ -38,30 +38,24 @@ On first run, NOVA will ask for your **Anthropic/GenAI API key** and save it to 
 ```
 $ nova
 
-  -
-  > Hello, vikash. I'm 'NOVA'
-  -
-
-  > describe your task! create a new react app called my-portfolio using vite
-
-  -
-  ◕ thinking... ( 1.8 seconds )
-  → Scaffolding a Vite React project called my-portfolio and installing dependencies
-
-  $ npx create-vite@latest my-portfolio --template react
-  [npx output...]
-
-  $ cd /Users/vikash/my-portfolio
-
-  $ npm install
-  [npm output...]
-
-  -
-  ◕ generating... ( 18.4 seconds )
-  ◓ finished.
-  -
-
-  > describe your task!
+┌  NOVA Local terminal assistant for vikash
+│
+◆  What would you like Nova to do?
+│  create a new react app called my-portfolio using vite
+│
+◇  Thinking complete (1.8s).
+│
+●  Scaffolding a Vite React project called my-portfolio
+│
+◇  $ npx create-vite@latest my-portfolio --template react
+   [npx output...]
+│
+◇  $ npm install
+   [npm output...]
+│
+◆  Finished in 18.4 seconds.
+│
+◇  What would you like Nova to do?
 ```
 
 ---
@@ -115,6 +109,7 @@ nova --dev
 ## Tech
 
 - Node.js 18+ (ESM)
+- [Clack](https://github.com/bombshell-dev/clack) — prompts, spinners, and terminal UI
 - [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-node) — task evaluation
 - [Google GenAI](https://ai.google.dev/gemini-api/docs/get-started) — task evaluation
 - [chalk](https://github.com/chalk/chalk) — terminal styling

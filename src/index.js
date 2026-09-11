@@ -8,9 +8,9 @@ import {
   printInfo,
   printError,
   printFinished,
+  printSetupComplete,
   withSpinner,
   startPromptLoop,
-  sep,
 } from "./ui.js";
 
 export async function activate() {
@@ -22,7 +22,9 @@ export async function activate() {
     apiKey = config.apiKey;
   } else {
     apiKey = await promptForApiKey();
+    if (!apiKey) return;
     saveConfig({ apiKey });
+    printSetupComplete();
   }
 
   // ── 2. Banner ─────────────────────────────────────────────────────
@@ -30,7 +32,7 @@ export async function activate() {
   printBanner(username);
 
   // ── 3. Main loop ──────────────────────────────────────────────────
-  startPromptLoop(async (task) => {
+  await startPromptLoop(async (task) => {
     // Step A: evaluate the task with AI
     let plan;
     try {
@@ -55,7 +57,6 @@ export async function activate() {
     } catch (err) {
       console.log();
       printError(err.message);
-      sep();
     }
   });
 }

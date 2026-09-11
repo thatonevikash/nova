@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { createInterface } from "readline";
-import { executeCommands } from "./executor.js";
-import { printCommand, printError, printFinished, sep } from "./ui.js";
+import { executeCommands } from "../src/executor.js";
+import { printCommand, printError, printFinished, sep } from "../src/ui.js";
 
 // ── action definitions ────────────────────────────────────────────────
 // Each entry mirrors the shape of an AI response so the real executor

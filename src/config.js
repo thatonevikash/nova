@@ -1,13 +1,11 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
-import { createInterface } from "readline";
+import * as prompts from "@clack/prompts";
 import chalk from "chalk";
 
 const CONFIG_DIR = join(homedir(), ".nova");
 const CONFIG_FILE = join(CONFIG_DIR, "config.json");
-
-// ── read ─────────────────────────────────────────────────────────────
 
 export function loadConfig() {
   try {
@@ -18,40 +16,29 @@ export function loadConfig() {
   }
 }
 
-// ── write ────────────────────────────────────────────────────────────
-
 export function saveConfig(data) {
   mkdirSync(CONFIG_DIR, { recursive: true });
   writeFileSync(CONFIG_FILE, JSON.stringify(data, null, 2), "utf-8");
 }
 
-// ── first-time setup ─────────────────────────────────────────────────
-
 export async function promptForApiKey() {
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
-
-  console.log();
-  console.log(chalk.gray("  ──────────────────────────────────────"));
-  console.log(
-    `  ${chalk.bold.white("NOVA")} ${chalk.gray("— first time setup")}`,
+  prompts.intro(`${chalk.bold.white("NOVA")} ${chalk.dim("First-time setup")}`);
+  prompts.note(
+    `Your key will be stored at ${chalk.cyan("~/.nova/config.json")}.`,
+    "Configuration",
   );
-  console.log(
-    chalk.gray("  Your key will be stored at ") +
-      chalk.cyan("~/.nova/config.json"),
-  );
-  console.log(chalk.gray("  ──────────────────────────────────────"));
-  console.log();
 
-  return new Promise((resolve) => {
-    rl.question(`  ${chalk.gray("GenAI API key ›")} `, (input) => {
-      rl.close();
-      const key = input.trim();
-      if (!key) {
-        console.log(chalk.red("\n  ✗ No key entered. Exiting.\n"));
-        process.exit(1);
-      }
-      console.log(chalk.green("\n  ✓ Key saved.\n"));
-      resolve(key);
-    });
+  const key = await prompts.password({
+    message: "Enter your Google GenAI API key",
+    validate(value) {
+      if (!value?.trim()) return "An API key is required.";
+    },
   });
+
+  if (prompts.isCancel(key)) {
+    prompts.cancel("Setup cancelled.");
+    return null;
+  }
+
+  return key.trim();
 }

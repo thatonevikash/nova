@@ -1,12 +1,10 @@
 import chalk from "chalk";
-import { createInterface } from "readline";
+import * as prompts from "@clack/prompts";
 import { executeCommands } from "../src/executor.js";
-import { printCommand, printError, printFinished, sep } from "../src/ui.js";
+import { printCommand, printError, printFinished } from "../src/ui.js";
 
-// ── action definitions ────────────────────────────────────────────────
-// Each entry mirrors the shape of an AI response so the real executor
-// path is exercised end-to-end with no mocking.
-
+// Each entry mirrors the shape of an AI response so the real executor path is
+// exercised end-to-end with no mocking.
 const ACTIONS = [
   {
     id: 1,
@@ -81,119 +79,58 @@ const ACTIONS = [
   },
 ];
 
-// ── helpers ───────────────────────────────────────────────────────────
-
-const preview = (cmds) => {
-  const joined = cmds.join("  →  ");
-  return joined.length > 52 ? joined.slice(0, 49) + "…" : joined;
+const preview = (commands) => {
+  const joined = commands.join("  ->  ");
+  return joined.length > 52 ? `${joined.slice(0, 49)}...` : joined;
 };
 
-const pad = (str, n) => str + " ".repeat(Math.max(0, n - str.length));
-
-// ── menu renderer ─────────────────────────────────────────────────────
-
-function printMenu() {
-  const labelWidth = Math.max(...ACTIONS.map((a) => a.label.length)) + 2;
-
-  console.log();
-  sep();
-  console.log(
-    `  ${chalk.white(">")} ${chalk.bold.white("NOVA")} ${chalk.gray("— development mode")}`,
-  );
-  sep();
-  console.log();
-
-  for (const a of ACTIONS) {
-    const num = chalk.cyan(`[${a.id}]`);
-    const label = chalk.white(pad(a.label, labelWidth));
-    const hint = chalk.gray(preview(a.commands));
-    console.log(`  ${num}  ${label}${hint}`);
-  }
-
-  console.log();
-}
-
-// ── run an action ─────────────────────────────────────────────────────
-
 async function runAction(action) {
-  console.log();
-  sep();
-  console.log(`  ${chalk.cyan("→")} ${chalk.gray(action.description)}`);
-  console.log(`  ${chalk.gray("category:")} ${chalk.white(action.category)}`);
+  prompts.log.info(action.description);
+  prompts.log.message(
+    `${chalk.dim("Category:")} ${chalk.white(action.category)}`,
+  );
 
   const start = Date.now();
 
   try {
-    await executeCommands(action.commands, (cmd) => printCommand(cmd));
-
-    const secs = ((Date.now() - start) / 1000).toFixed(1);
-    printFinished(secs);
-  } catch (err) {
-    console.log();
-    printError(err.message);
-    sep();
+    await executeCommands(action.commands, (command) => printCommand(command));
+    const seconds = ((Date.now() - start) / 1000).toFixed(1);
+    printFinished(seconds);
+  } catch (error) {
+    printError(error.message);
   }
 }
 
-// ── prompt loop ───────────────────────────────────────────────────────
-
 export async function devMode() {
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  prompts.intro(`${chalk.bold.white("NOVA")} ${chalk.dim("Development mode")}`);
 
-  rl.on("SIGINT", () => {
-    console.log(
-      `\n\n  ${chalk.gray(">")} ${chalk.gray("Exiting dev mode.")}\n`,
-    );
-    process.exit(0);
-  });
+  while (true) {
+    const selected = await prompts.select({
+      message: "Choose a safe development action",
+      options: [
+        ...ACTIONS.map((action) => ({
+          value: action.id,
+          label: action.label,
+          hint: preview(action.commands),
+        })),
+        { value: "exit", label: "Exit development mode" },
+      ],
+      maxItems: 10,
+    });
 
-  const ask = () => {
-    printMenu();
+    if (prompts.isCancel(selected) || selected === "exit") {
+      prompts.outro("Exiting development mode.");
+      return;
+    }
 
-    rl.question(
-      `  ${chalk.white(">")} ${chalk.gray("pick action [1-9] or exit: ")}`,
-      async (raw) => {
-        const input = raw.trim().toLowerCase();
+    const action = ACTIONS.find(({ id }) => id === selected);
+    if (!action) {
+      printError("The selected development action is unavailable.");
+      continue;
+    }
 
-        if (!input) {
-          ask();
-          return;
-        }
-
-        if (input === "exit" || input === "quit") {
-          console.log(
-            `\n  ${chalk.gray(">")} ${chalk.gray("Exiting dev mode.")}\n`,
-          );
-          rl.close();
-          process.exit(0);
-        }
-
-        const num = parseInt(input, 10);
-        const action = ACTIONS.find((a) => a.id === num);
-
-        if (!action) {
-          console.log(
-            `\n  ${chalk.red("✗")} ${chalk.red(`"${input}" is not valid — enter 1–9 or exit.`)}`,
-          );
-          ask();
-          return;
-        }
-
-        // ── hand stdin back to the child process ──────────────────────
-        // readline holds process.stdin and keeps it in line-buffered mode.
-        // Interactive tools like create-next-app need raw TTY access for
-        // arrow keys and keyboard navigation.  pause() releases that hold
-        // so the spawned process gets full control of the terminal.
-        rl.pause();
-
-        await runAction(action);
-
-        // ── reclaim stdin for the next menu prompt ────────────────────
-        rl.resume();
-        ask();
-      },
-    );
-  };
-
-  ask();
+    // The select prompt has completed, so the child receives the terminal
+    // directly through the executor's inherited stdio.
+    await runAction(action);
+  }
 }

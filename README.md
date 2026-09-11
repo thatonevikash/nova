@@ -23,10 +23,10 @@ npm link
 
 ---
 
-## Activate
+## Start
 
 ```bash
-nova --activate
+nova
 ```
 
 On first run, NOVA will ask for your **Anthropic/GenAI API key** and save it to `~/.nova/config.json`. You won't be asked again.
@@ -36,7 +36,7 @@ On first run, NOVA will ask for your **Anthropic/GenAI API key** and save it to 
 ## Example session
 
 ```
-$ nova --activate
+$ nova
 
   -
   > Hello, vikash. I'm 'NOVA'
@@ -92,7 +92,13 @@ To reset and re-enter your API key:
 
 ```bash
 rm ~/.nova/config.json
-nova --activate
+nova
+```
+
+To launch NOVA's development environment:
+
+```bash
+nova --dev
 ```
 
 ---

@@ -1,13 +1,40 @@
 {
-  "name": "nova",
-  "version": "0.0.2",
+  "name": "tnova",
+  "version": "0.0.3",
   "description": "An AI assistant that lives in your terminal",
   "type": "module",
+  "files": [
+    "bin/*.js",
+    "src/*.js",
+    "src/sdk/*.js",
+    "src/sdk/brain/*.js",
+    ".development/*.js"
+  ],
   "bin": {
-    "nova": "./bin/nova.js"
+    "nova": "bin/nova.js"
   },
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "test:package": "node scripts/package-smoke.js",
+    "prepublishOnly": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thatonevikash/nova.git"
+  },
+  "homepage": "https://github.com/thatonevikash/nova#readme",
+  "bugs": {
+    "url": "https://github.com/thatonevikash/nova/issues"
+  },
+  "keywords": [
+    "ai",
+    "cli",
+    "terminal",
+    "assistant"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

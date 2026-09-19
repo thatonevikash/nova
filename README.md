@@ -10,16 +10,14 @@ NOVA understands developer tasks in plain English — scaffolding projects, inst
 
 ## Install
 
+Install [Node.js 18 or newer](https://nodejs.org/), then run:
+
 ```bash
-# Clone or download the repo
-cd nova
-
-# Install dependencies
-npm install
-
-# Link globally so `nova` works anywhere
-npm link
+npm install -g tnova
 ```
+
+This installs NOVA's dependencies and makes the `nova` command available
+globally. No repository clone or local linking is required.
 
 ---
 
@@ -29,7 +27,7 @@ npm link
 nova
 ```
 
-On first run, NOVA will ask for your **Anthropic/GenAI API key** and save it to `~/.nova/config.json`. You won't be asked again.
+On first run, NOVA will ask for your **Google GenAI API key** and save it to `~/.nova/config.json`. You won't be asked again.
 
 ---
 
@@ -94,6 +92,42 @@ To launch NOVA's development environment:
 ```bash
 nova --dev
 ```
+
+To update or uninstall NOVA:
+
+```bash
+npm install -g tnova@latest
+npm uninstall -g tnova
+```
+
+---
+
+## Contributing
+
+Repository contributors can run NOVA directly from source:
+
+```bash
+git clone https://github.com/thatonevikash/nova.git
+cd nova
+npm install
+npm link
+```
+
+### Publishing
+
+The first npm release creates the package and must be published by its owner:
+
+```bash
+npm login
+npm test
+npm run test:package
+npm publish
+```
+
+After the first release, configure `thatonevikash/nova` as the trusted GitHub
+publisher for the npm package `tnova`, select `publish.yml`, and allow direct
+publishing. Future releases are published automatically when a GitHub Release
+whose tag matches the package version (for example, `v0.0.4`) is published.
 
 ---
 

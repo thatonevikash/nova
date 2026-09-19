@@ -10,7 +10,8 @@ NOVA understands developer tasks in plain English — scaffolding projects, inst
 
 ## Install
 
-Install [Node.js 18 or newer](https://nodejs.org/), then run:
+Install [Node.js 22 or newer](https://nodejs.org/) (Node.js 24 LTS is
+recommended), then run:
 
 ```bash
 npm install -g tnova
@@ -142,7 +143,7 @@ whose tag matches the package version (for example, `v0.0.4`) is published.
 
 ## Tech
 
-- Node.js 18+ (ESM)
+- Node.js 22+ (ESM; Node.js 24 LTS recommended)
 - [Clack](https://github.com/bombshell-dev/clack) — prompts, spinners, and terminal UI
 - [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-node) — task evaluation
 - [Google GenAI](https://ai.google.dev/gemini-api/docs/get-started) — task evaluation

@@ -37,7 +37,7 @@ on:
       - development
 
 env:
-  NODE_VERSION: "20"
+  NODE_VERSION: "24"
 
 # ── Action 1 ─────────────────────────────────────────────────────────────────
 
@@ -72,7 +72,7 @@ jobs:
     name: "[3] nodejs project init"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
 
@@ -93,7 +93,7 @@ jobs:
     name: "[4] package installation"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
 
@@ -114,7 +114,7 @@ jobs:
     name: "[5] package uninstallation"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
 
@@ -140,7 +140,7 @@ jobs:
     name: "[6] react + vite setup"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
 
@@ -167,7 +167,7 @@ jobs:
     name: "[7] nextjs setup"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
 
@@ -190,7 +190,7 @@ jobs:
     name: "[8] nextjs + mui setup"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
 

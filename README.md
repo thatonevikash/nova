@@ -1,151 +1,163 @@
-# NOVA
+# Nova
 
-> An AI assistant that lives in your terminal.
+Nova is an AI-powered terminal assistant that turns plain-language development
+requests into commands and runs them sequentially in your current shell.
 
-NOVA understands developer tasks in plain English — scaffolding projects, installing packages, creating directories, and running scripts — and executes them directly in your shell.
+<video controls src="assets/trailer.mp4" poster="assets/poster.png" title="Nova demo"></video>
 
----
+## Requirements
 
-<video controls src="assets/trailer.mp4" poster="assets/poster.png" title="trailer"></video>
+- Node.js 22 or newer (Node.js 24 LTS is recommended)
+- npm
+- A [Google Gemini API key](https://aistudio.google.com/apikey)
 
-## Install
+## Installation
 
-Install [Node.js 22 or newer](https://nodejs.org/) (Node.js 24 LTS is
-recommended), then run:
+Install Nova globally from npm:
 
 ```bash
-npm install -g tnova
+npm install --global tnova
 ```
 
-This installs NOVA's dependencies and makes the `nova` command available
-globally. No repository clone or local linking is required.
+The package is named `tnova`; the installed command is `nova`.
 
----
+## Getting started
 
-## Start
+Start Nova in the directory where you want it to work:
 
 ```bash
 nova
 ```
 
-On first run, NOVA will ask for your **Google GenAI API key** and save it to `~/.nova/config.json`. You won't be asked again.
+On the first run, enter your Google Gemini API key when prompted. Nova stores
+it locally in `~/.nova/config.json` and reuses it on later runs.
 
----
+Then describe a task, for example:
 
-## Example session
-
-```
-$ nova
-
-┌  NOVA Local terminal assistant for vikash
-│
-◆  What would you like Nova to do?
-│  create a new react app called my-portfolio using vite
-│
-◇  Thinking complete (1.8s).
-│
-●  Scaffolding a Vite React project called my-portfolio
-│
-◇  $ npx create-vite@latest my-portfolio --template react
-   [npx output...]
-│
-◇  $ npm install
-   [npm output...]
-│
-◆  Finished in 18.4 seconds.
-│
-◇  What would you like Nova to do?
+```text
+Create a React app called dashboard using Vite
 ```
 
----
+Nova asks Gemini to create a structured plan, displays a short description,
+and executes the returned commands in order. Enter `exit`, `quit`, or `bye`, or
+press `Ctrl+C`, to leave the prompt.
 
-## Supported task categories
+> [!CAUTION]
+> Nova currently executes AI-generated commands in your shell. Review the
+> displayed commands and run Nova only in a directory where you are comfortable
+> allowing changes.
 
-| Category             | Example                                  |
-| -------------------- | ---------------------------------------- |
-| `directory_creation` | "create a folder called backend"         |
-| `npx_command`        | "scaffold a next.js app called blog"     |
-| `package_install`    | "install axios and react-query"          |
-| `script_execution`   | "run the dev server"                     |
-| `mixed`              | "create a vite project and add tailwind" |
+## Supported tasks
 
----
+Nova's current prompts support:
 
-## Config
+| Task | Example |
+| --- | --- |
+| Create directories | `Create a folder called utils inside src` |
+| Initialize Node.js projects | `Create a Node.js app called api-server` |
+| Scaffold Vite apps | `Create a Vue app called dashboard using Vite` |
+| Scaffold Next.js, Remix, or Astro apps | `Create a Next.js app called blog` |
+| Scaffold Next.js with MUI | `Create a Next.js project with MUI called admin` |
+| Install or remove npm packages | `Install axios and dotenv` |
+| Run npm scripts | `Run the dev script` |
+| Rename a codebase with Casely | `Rename src to kebab case` |
 
-Stored at `~/.nova/config.json`:
+Scaffolding and package-management tasks can download packages and may open
+interactive prompts from npm or npx.
+
+## CLI options
+
+```text
+nova                 Start the interactive assistant
+nova --help          Show command help
+nova --version       Show the installed version
+nova --dev           Open the development action menu
+```
+
+The development menu runs predefined actions through Nova's executor. Some
+actions create files, install packages, or start a long-running development
+server, so use it in a disposable directory.
+
+## Configuration
+
+Nova stores its configuration in:
+
+```text
+~/.nova/config.json
+```
+
+The current format is:
 
 ```json
 {
-  "apiKey": "sk-ant-..."
+  "apiKey": "your-google-gemini-api-key"
 }
 ```
 
-To reset and re-enter your API key:
+Treat this file as a secret and do not commit it. To replace the key, delete
+the file and start Nova again:
+
+macOS and Linux:
 
 ```bash
 rm ~/.nova/config.json
 nova
 ```
 
-To launch NOVA's development environment:
+Windows PowerShell:
 
-```bash
-nova --dev
+```powershell
+Remove-Item "$HOME\.nova\config.json"
+nova
 ```
 
-To update or uninstall NOVA:
+## Updating and uninstalling
 
 ```bash
-npm install -g tnova@latest
-npm uninstall -g tnova
+npm install --global tnova@latest
+npm uninstall --global tnova
 ```
 
----
+## Development
 
-## Contributing
-
-Repository contributors can run NOVA directly from source:
+Clone the repository and install its dependencies:
 
 ```bash
 git clone https://github.com/thatonevikash/nova.git
 cd nova
 npm install
-npm link
 ```
 
-### Publishing
-
-The first npm release creates the package and must be published by its owner:
+Run the CLI directly from source:
 
 ```bash
-npm login
-npm test
-npm run test:package
-npm publish
+node bin/nova.js
 ```
 
-After the first release, configure `thatonevikash/nova` as the trusted GitHub
-publisher for the npm package `tnova`, select `publish.yml`, and allow direct
-publishing. Future releases are published automatically when a GitHub Release
-whose tag matches the package version (for example, `v0.0.4`) is published.
+Or create a global development link:
 
----
+```bash
+npm link
+nova
+```
 
-## Commands
+Run the automated tests and package smoke test before contributing:
 
-| Terminal input          | Effect        |
-| ----------------------- | ------------- |
-| `exit` / `quit` / `bye` | Quit NOVA     |
-| `Ctrl+C`                | Graceful exit |
+```bash
+npm test
+npm run test:package
+```
 
----
+The project uses ECMAScript modules. Its main entry points are
+`bin/nova.js`, `src/index.js`, and `src/executor.js`.
 
-## Tech
+## Tech stack
 
-- Node.js 22+ (ESM; Node.js 24 LTS recommended)
-- [Clack](https://github.com/bombshell-dev/clack) — prompts, spinners, and terminal UI
-- [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-node) — task evaluation
-- [Google GenAI](https://ai.google.dev/gemini-api/docs/get-started) — task evaluation
-- [chalk](https://github.com/chalk/chalk) — terminal styling
-- `child_process.spawn` — shell command execution
+- [Google GenAI SDK](https://www.npmjs.com/package/@google/genai) for task evaluation
+- [Clack](https://www.npmjs.com/package/@clack/prompts) for interactive prompts
+- [Chalk](https://www.npmjs.com/package/chalk) for terminal styling
+- Node.js `child_process` and filesystem APIs for command execution
+
+## License
+
+Nova is available under the [MIT License](LICENCE).
